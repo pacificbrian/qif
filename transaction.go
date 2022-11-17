@@ -27,6 +27,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+type TransactionType uint
+
+const (
+	TransactionTypeUndefined TransactionType = iota
+	TransactionTypeBanking
+	TransactionTypeInvestment
+)
+
 type ClearedStatus int
 
 const (
@@ -56,9 +64,16 @@ type Transaction interface {
 	// UnknownStatus if the transaction data did not specify a value for this
 	// field.
 	Status() ClearedStatus
+
+	// Informs what is super class, so result of Read() can be typecast
+	// to BankingTransaction or InvestmentTransaction
+	TransactionType() TransactionType
+
+	parseTransactionTypeField(line string, config Config) error
 }
 
 type transaction struct {
+	transactionType TransactionType
 	date   time.Time
 	amount int
 	memo   string
@@ -79,6 +94,10 @@ func (t *transaction) Memo() string {
 
 func (t *transaction) Status() ClearedStatus {
 	return t.status
+}
+
+func (t *transaction) TransactionType() TransactionType {
+	return t.transactionType
 }
 
 func (t *transaction) parseTransactionField(line string, config Config) error {

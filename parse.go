@@ -25,6 +25,7 @@ const (
 	bankHeader = "!Type:Bank"
 	cashHeader = "!Type:Cash"
 	cardHeader = "!Type:CCard"
+	invstHeader = "!Type:Invst"
 	recordEnd  = "^"
 )
 
@@ -54,6 +55,9 @@ type reader struct {
 	// headerParsed is true if the header line has been read from the input
 	// data.
 	headerParsed bool
+
+	// type of Transactions to be parsed (determined during ParseHeader)
+	transactionType TransactionType
 }
 
 // NewReader creates a new Reader with a default configuration (see
@@ -83,9 +87,13 @@ func (r *reader) parseHeader() error {
 
 	switch r.in.Text() {
 	case bankHeader, cashHeader, cardHeader:
+		r.transactionType = TransactionTypeBanking
 		r.headerParsed = true
 		return nil
-
+	case invstHeader:
+		r.transactionType = TransactionTypeInvestment
+		r.headerParsed = true
+		return nil
 	default:
 		return errors.Errorf("unsupported header type '%s'", r.in.Text())
 	}
@@ -93,6 +101,8 @@ func (r *reader) parseHeader() error {
 
 // Read implements Reader.Read.
 func (r *reader) Read() (Transaction, error) {
+	var tx Transaction
+	var err error
 
 	if !r.headerParsed {
 		err := r.parseHeader()
@@ -101,8 +111,13 @@ func (r *reader) Read() (Transaction, error) {
 		}
 	}
 
-	// Only one type supported at the moment
-	tx := &bankingTransaction{}
+	// parse based on transactionType (set by parseHeader)
+	switch r.transactionType {
+	case TransactionTypeInvestment:
+		tx = &investmentTransaction{}
+	default:
+		tx = &bankingTransaction{}
+	}
 	data := false
 
 	for r.in.Scan() {
@@ -113,7 +128,7 @@ func (r *reader) Read() (Transaction, error) {
 			return tx, nil
 		}
 
-		err := tx.parseBankingTransactionField(r.in.Text(), r.config)
+		err = tx.parseTransactionTypeField(r.in.Text(), r.config)
 		if err != nil {
 			return nil, err
 		}

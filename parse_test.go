@@ -115,6 +115,7 @@ func TestSpecExample1(t *testing.T) {
 	expected1.date, err = time.Parse("1/ 2/06", "6/ 1/94")
 	require.NoError(t, err)
 	expected1.amount = -100000
+	expected1.transactionType = TransactionTypeBanking
 
 	expected2 := &bankingTransaction{
 		payee: "Deposit",
@@ -122,6 +123,7 @@ func TestSpecExample1(t *testing.T) {
 	expected2.date, err = time.Parse("1/ 2/06", "6/ 2/94")
 	require.NoError(t, err)
 	expected2.amount = 7500
+	expected2.transactionType = TransactionTypeBanking
 
 	expected3 := &bankingTransaction{
 		payee:    "Anthony Hopkins",
@@ -132,6 +134,7 @@ func TestSpecExample1(t *testing.T) {
 	require.NoError(t, err)
 	expected3.amount = -1000
 	expected3.memo = "Film"
+	expected3.transactionType = TransactionTypeBanking
 
 	expected := []Transaction{expected1, expected2, expected3}
 
