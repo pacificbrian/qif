@@ -95,6 +95,7 @@ func (t *bankingTransaction) parseBankingTransactionField(line string,
 		// An actual error happened
 		return err
 	}
+	t.transactionType = TransactionTypeBanking
 
 	// Otherwise, try and parse it here
 
@@ -158,6 +159,11 @@ func (t *bankingTransaction) parseBankingTransactionField(line string,
 		return UnsupportedFieldError(
 			errors.Errorf("cannot process line '%s'", line))
 	}
+}
+
+func (t *bankingTransaction) parseTransactionTypeField(line string,
+						       config Config) error {
+	return t.parseBankingTransactionField(line, config)
 }
 
 // A Split is used to tag part of a transaction with a separate category and
