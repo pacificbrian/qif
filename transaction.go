@@ -24,6 +24,7 @@ import (
 
 	"strings"
 
+	"github.com/shopspring/decimal"
 	"github.com/pkg/errors"
 )
 
@@ -57,6 +58,9 @@ type Transaction interface {
 	// instance, a $12.99 transaction will be 1299.
 	Amount() int
 
+	// Amount stored as decimal.Decimal
+	AmountDecimal() decimal.Decimal
+
 	// Memo is a string description of the transaction.
 	Memo() string
 
@@ -74,6 +78,7 @@ type Transaction interface {
 
 type transaction struct {
 	transactionType TransactionType
+	amountDecimal decimal.Decimal
 	date   time.Time
 	amount int
 	memo   string
@@ -86,6 +91,10 @@ func (t *transaction) Date() time.Time {
 
 func (t *transaction) Amount() int {
 	return t.amount
+}
+
+func (t *transaction) AmountDecimal() decimal.Decimal {
+	return t.amountDecimal
 }
 
 func (t *transaction) Memo() string {
@@ -115,12 +124,14 @@ func (t *transaction) parseTransactionField(line string, config Config) error {
 		return nil
 
 	case 'T', 'U': // Wikipedia suggests 'U' is a synonym for 'T'
-		amt, err := parseAmount(line[1:])
+		amount := strings.Replace(line[1:], ",", "", -1)
+		amt, err := parseAmount(amount)
 		if err != nil {
 			return errors.Wrap(err, "failed to parse amount")
 		}
 		t.amount = amt
-		return nil
+		t.amountDecimal, err = decimal.NewFromString(amount)
+		return err
 
 	case 'M':
 		t.memo = line[1:]
