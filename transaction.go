@@ -231,7 +231,7 @@ func parseDate(s string, dayFirst bool) (date time.Time, err error) {
 	}
 
 	for _, f := range formats {
-		date, err = time.Parse(f, sMod)
+		date, err = time.ParseInLocation(f, sMod, time.Local)
 		if err == nil {
 			return
 		}
