@@ -1,4 +1,4 @@
-module github.com/dmjones/qif
+module github.com/pacificbrian/qif
 
 go 1.18
 
